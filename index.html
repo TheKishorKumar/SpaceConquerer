@@ -1,0 +1,28 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Stickman Game</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="game-container">
+
+    <div class="stickman">
+      <div class="stickman-body"></div>
+      <div class="stickman-leg left"></div>
+      <div class="stickman-leg right"></div>
+    </div>
+  </div>
+  <div class="score-container" id="score">0</div> <!-- Add this line -->
+  <div class="game-over-screen hidden" id="game-over-screen"> <!-- Add this line -->
+    <div>
+      <h1>Game Over</h1>
+      <p>Final Score: <span id="final-score">0</span></p>
+      <button id="restart-button">Restart</button>
+    </div>
+  </div>
+  <script src="script.js"></script>
+</body>
+</html>
