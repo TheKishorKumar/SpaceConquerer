@@ -4,21 +4,55 @@ const scoreElement = document.getElementById("score");
 const gameOverScreen = document.getElementById("game-over-screen");
 const finalScore = document.getElementById("final-score");
 const restartButton = document.getElementById("restart-button");
+const highScoreElement = document.getElementById("high-score");
+const shootingCooldown = 100;
+
+let lastBulletTime = 0;
 let isGameOver = false;
 let score = 0;
 let leftPressed = false;
 let rightPressed = false;
-let shootPressed = false;
+
+let difficultyLevel = 0;
+let startTime = new Date().getTime();
+let obstacleCount = 0;
+
+
+function updateDifficulty(elapsedTime) {
+  if (elapsedTime < 10000) {
+    difficultyLevel = 1;
+  } else if (elapsedTime < 20000) {
+    difficultyLevel = 2;
+  } else {
+    difficultyLevel = 3;
+  }
+}
+
 
 function gameLoop() {
   if (!isGameOver) {
+    shootBullet(); // Add this line
     updateStickmanPosition();
     requestAnimationFrame(gameLoop);
   }
 }
 
+
 gameLoop();
 
+function showLevel(level) {
+  const levelText = document.createElement("div");
+  levelText.textContent = `Level ${level}`;
+  levelText.style.position = "absolute";
+  levelText.style.top = "10px";
+  levelText.style.right = "10px";
+  levelText.style.fontSize = "24px";
+  gameContainer.appendChild(levelText);
+
+  setTimeout(() => {
+    gameContainer.removeChild(levelText);
+  }, 1500);
+}
 
 
 
@@ -61,13 +95,6 @@ document.addEventListener("keyup", (event) => {
 });
 
 
-function updateShooting() {
-  if (isGameOver) return;
-
-  if (shootPressed) {
-    shootBullet();
-  }
-}
 
 
 function moveStickman(distance) {
@@ -84,6 +111,9 @@ function moveStickman(distance) {
 
 function shootBullet() {
   if (isGameOver) return;
+  const currentTime = new Date().getTime();
+  if (currentTime - lastBulletTime < shootingCooldown) return; // Check if enough time has passed
+  lastBulletTime = currentTime; 
 
   const bullet = document.createElement("div");
   bullet.classList.add("bullet");
@@ -147,9 +177,13 @@ function checkBulletCollision(bullet) {
 function createObstacle() {
   if (isGameOver) return;
 
+  const horizontalSpeed = difficultyLevel === 3 ? Math.random() * 2 - 1 : 0;
+
   const obstacle = document.createElement("div");
   obstacle.classList.add("obstacle");
-  const isObstacleType2 = Math.random() < 0.2; // 20% chance to be obstacle 2
+  
+  const currentLevel = Math.floor(obstacleCount / 10) + 1;
+  const isObstacleType2 = Math.random() < (0.2 * currentLevel);
 
   if (isObstacleType2) {
     obstacle.classList.add("obstacle-type-2");
@@ -170,16 +204,30 @@ function createObstacle() {
     const currentTop = parseInt(
       getComputedStyle(obstacle).getPropertyValue("top")
     );
+    const currentLeft = parseInt(
+      getComputedStyle(obstacle).getPropertyValue("left")
+    );
     const newTop = currentTop + 10;
+    const newLeft = currentLeft + horizontalSpeed;
+
     if (newTop >= gameContainer.clientHeight) {
       gameContainer.removeChild(obstacle);
       clearInterval(moveObstacleInterval);
     } else {
       obstacle.style.top = newTop + "px";
+      obstacle.style.left = newLeft + "px";
       checkObstacleCollision(obstacle);
     }
   }, 1000 / 30);
+  obstacleCount++;
+  if (obstacleCount % 10 === 0) {
+    const currentLevel = obstacleCount / 10;
+    showLevel(currentLevel);
+  }
 }
+
+
+
 
 function checkObstacleCollision(obstacle) {
   const obstacleRect = obstacle.getBoundingClientRect();
@@ -225,6 +273,14 @@ function endGame() {
   isGameOver = true;
   finalScore.textContent = score;
   gameOverScreen.classList.remove("hidden");
+
+  // Save high score to local storage
+  let highScore = localStorage.getItem("highScore");
+  if (!highScore || score > highScore) {
+    highScore = score;
+    localStorage.setItem("highScore", highScore);
+  }
+  highScoreElement.textContent = highScore;
 }
 
 restartButton.addEventListener("click", () => {
@@ -232,5 +288,4 @@ restartButton.addEventListener("click", () => {
 });
 
 // Create obstacles and update the score periodically.
-setInterval(updateShooting, 200);
 setInterval(createObstacle, 500);

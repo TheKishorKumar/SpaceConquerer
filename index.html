@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Stickman Game</title>
+  <title>Space Conquerer</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -16,13 +16,15 @@
     </div>
   </div>
   <div class="score-container" id="score">0</div> <!-- Add this line -->
-  <div class="game-over-screen hidden" id="game-over-screen"> <!-- Add this line -->
-    <div>
-      <h1>Game Over</h1>
-      <p>Final Score: <span id="final-score">0</span></p>
-      <button id="restart-button">Restart</button>
-    </div>
+  <div class="game-over-screen hidden" id="game-over-screen">
+  <div>
+    <h1>Game Over</h1>
+    <p>Your Current Score: <span id="final-score">0</span></p>
+    <p>High Score: <span id="high-score">0</span></p> <!-- Add this line -->
+    <button id="restart-button">Restart</button>
   </div>
+</div>
+
   <script src="script.js"></script>
 </body>
 </html>
