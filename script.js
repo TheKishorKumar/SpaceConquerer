@@ -17,7 +17,7 @@ let difficultyLevel = 0;
 let startTime = new Date().getTime();
 let obstacleCount = 0;
 let powerUpActive = false;
-
+let scoreIncrement = 1;
 
 function updateDifficulty(elapsedTime) {
   if (elapsedTime < 10000) {
@@ -147,18 +147,14 @@ function createPowerUp() {
 
   const powerUp = document.createElement("div");
   powerUp.classList.add("power-up");
-  powerUp.style.width = "20px";
-  powerUp.style.height = "20px";
-  powerUp.style.backgroundColor = "purple";
-  powerUp.style.position = "absolute";
-  powerUp.style.top = "0";
   powerUp.style.left = Math.random() * (gameContainer.clientWidth - 20) + "px";
   gameContainer.appendChild(powerUp);
 
   const movePowerUpInterval = setInterval(() => {
-    const currentTop = parseInt(getComputedStyle(powerUp).getPropertyValue("top"));
+    const currentTop = parseInt(
+      getComputedStyle(powerUp).getPropertyValue("top")
+    );
     const newTop = currentTop + 5;
-
     if (newTop >= gameContainer.clientHeight) {
       gameContainer.removeChild(powerUp);
       clearInterval(movePowerUpInterval);
@@ -166,13 +162,14 @@ function createPowerUp() {
       powerUp.style.top = newTop + "px";
       checkPowerUpCollision(powerUp);
     }
-  }, 1000 / 30);
+  }, 1000 / 60);
 }
-
 
 function checkPowerUpCollision(powerUp) {
   const powerUpRect = powerUp.getBoundingClientRect();
   const stickmanBodyRect = stickman.querySelector(".stickman-body").getBoundingClientRect();
+  const stickmanLeftLegRect = stickman.querySelector(".stickman-leg.left").getBoundingClientRect();
+  const stickmanRightLegRect = stickman.querySelector(".stickman-leg.right").getBoundingClientRect();
 
   const isBodyColliding = (
     stickmanBodyRect.x < powerUpRect.x + powerUpRect.width &&
@@ -181,19 +178,38 @@ function checkPowerUpCollision(powerUp) {
     stickmanBodyRect.y + stickmanBodyRect.height > powerUpRect.y
   );
 
-  if (isBodyColliding) {
+  const isLeftLegColliding = (
+    stickmanLeftLegRect.x < powerUpRect.x + powerUpRect.width &&
+    stickmanLeftLegRect.x + stickmanLeftLegRect.width > powerUpRect.x &&
+    stickmanLeftLegRect.y < powerUpRect.y + powerUpRect.height &&
+    stickmanLeftLegRect.y + stickmanLeftLegRect.height > powerUpRect.y
+  );
+
+  const isRightLegColliding = (
+    stickmanRightLegRect.x < powerUpRect.x + powerUpRect.width &&
+    stickmanRightLegRect.x + stickmanRightLegRect.width > powerUpRect.x &&
+    stickmanRightLegRect.y < powerUpRect.y + powerUpRect.height &&
+    stickmanRightLegRect.y + stickmanRightLegRect.height > powerUpRect.y
+  );
+
+  if (isBodyColliding || isLeftLegColliding || isRightLegColliding) {
     gameContainer.removeChild(powerUp);
     activatePowerUp();
   }
 }
 
-
 function activatePowerUp() {
-  powerUpActive = true;
+  const duration = 5000;
+  scoreIncrement = 2;
+  scoreElement.style.color = "gold";
+  
   setTimeout(() => {
-    powerUpActive = false;
-  }, 5000); // The power-up will be active for 5 seconds
+    scoreIncrement = 1;
+    scoreElement.style.color = "black";
+  }, duration);
 }
+
+
 
 
 
@@ -204,28 +220,29 @@ function checkBulletCollision(bullet) {
   for (const obstacle of obstacles) {
     const obstacleRect = obstacle.getBoundingClientRect();
 
-    if (
-      bulletRect.x < obstacleRect.x + obstacleRect.width &&
-      bulletRect.x + bulletRect.width > obstacleRect.x &&
-      bulletRect.y < obstacleRect.y + obstacleRect.height &&
-      bulletRect.y + bulletRect.height > obstacleRect.y
-    ) {
-      if (obstacle.classList.contains("obstacle-type-2")) {
-        obstacle.hitsRemaining--;
+     if (
+    bulletRect.x < obstacleRect.x + obstacleRect.width &&
+    bulletRect.x + bulletRect.width > obstacleRect.x &&
+    bulletRect.y < obstacleRect.y + obstacleRect.height &&
+    bulletRect.y + bulletRect.height > obstacleRect.y
+  ) {
+    if (obstacle.classList.contains("obstacle-type-2")) {
+      obstacle.hitsRemaining--;
 
-        if (obstacle.hitsRemaining === 0) {
-          gameContainer.removeChild(obstacle);
-          score += 5; // Change from 10 to 5 for red obstacles
-          scoreElement.textContent = score;
-        }
-      } else {
+      if (obstacle.hitsRemaining === 0) {
         gameContainer.removeChild(obstacle);
-        score += 1; // Change from 10 to 1 for normal obstacles
+        score += 5 * scoreIncrement; // Change this line to use scoreIncrement
         scoreElement.textContent = score;
       }
-      gameContainer.removeChild(bullet);
-      break;
+    } else {
+      gameContainer.removeChild(obstacle);
+      score += 1 * scoreIncrement; // Change this line to use scoreIncrement
+      scoreElement.textContent = score;
     }
+    gameContainer.removeChild(bullet);
+    break;
+  }
+
   }
 }
 
@@ -345,7 +362,6 @@ restartButton.addEventListener("click", () => {
 });
 
 
-setInterval(createPowerUp, 10000); // Create a power-up every 10 seconds
+setInterval(createPowerUp, 15000); // Create a power-up every 10 seconds
 
-// Create obstacles and update the score periodically.
-setInterval(createObstacle, 500);
+setInterval(createObstacle, 500);  // Create obstacles and update the score periodically.
