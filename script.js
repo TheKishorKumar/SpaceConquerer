@@ -74,27 +74,20 @@ let wKeyDown = false;
 let shootInterval;
 
 document.addEventListener("keydown", (event) => {
-  if (event.key === "a" || event.key === "A") {
+  if (event.key === "ArrowLeft") {
     leftPressed = true;
-  } else if (event.key === "d" || event.key === "D") {
+  } else if (event.key === "ArrowRight") {
     rightPressed = true;
-  } else if ((event.key === "w" || event.key === "W") && !wKeyDown) {
-    wKeyDown = true;
-    shootInterval = setInterval(shootBullet, 100);
   }
 });
 
 document.addEventListener("keyup", (event) => {
-  if (event.key === "a" || event.key === "A") {
+  if (event.key === "ArrowLeft") {
     leftPressed = false;
-  } else if (event.key === "d" || event.key === "D") {
+  } else if (event.key === "ArrowRight") {
     rightPressed = false;
-  } else if (event.key === "w" || event.key === "W") {
-    wKeyDown = false;
-    clearInterval(shootInterval);
   }
 });
-
 
 
 
