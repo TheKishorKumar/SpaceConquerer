@@ -1,4 +1,4 @@
-const stickman = document.querySelector(".stickman");
+﻿const stickman = document.querySelector(".stickman");
 const gameContainer = document.querySelector(".game-container");
 const scoreElement = document.getElementById("score");
 const gameOverScreen = document.getElementById("game-over-screen");
@@ -16,6 +16,7 @@ let rightPressed = false;
 let difficultyLevel = 0;
 let startTime = new Date().getTime();
 let obstacleCount = 0;
+let powerUpActive = false;
 
 
 function updateDifficulty(elapsedTime) {
@@ -112,8 +113,9 @@ function moveStickman(distance) {
 function shootBullet() {
   if (isGameOver) return;
   const currentTime = new Date().getTime();
-  if (currentTime - lastBulletTime < shootingCooldown) return; // Check if enough time has passed
-  lastBulletTime = currentTime; 
+  const currentCooldown = powerUpActive ? shootingCooldown / 2 : shootingCooldown;
+  if (currentTime - lastBulletTime < currentCooldown) return;
+  lastBulletTime = currentTime;
 
   const bullet = document.createElement("div");
   bullet.classList.add("bullet");
@@ -138,6 +140,61 @@ function shootBullet() {
     }
   }, 1000 / 60);
 }
+
+
+function createPowerUp() {
+  if (isGameOver) return;
+
+  const powerUp = document.createElement("div");
+  powerUp.classList.add("power-up");
+  powerUp.style.width = "20px";
+  powerUp.style.height = "20px";
+  powerUp.style.backgroundColor = "purple";
+  powerUp.style.position = "absolute";
+  powerUp.style.top = "0";
+  powerUp.style.left = Math.random() * (gameContainer.clientWidth - 20) + "px";
+  gameContainer.appendChild(powerUp);
+
+  const movePowerUpInterval = setInterval(() => {
+    const currentTop = parseInt(getComputedStyle(powerUp).getPropertyValue("top"));
+    const newTop = currentTop + 5;
+
+    if (newTop >= gameContainer.clientHeight) {
+      gameContainer.removeChild(powerUp);
+      clearInterval(movePowerUpInterval);
+    } else {
+      powerUp.style.top = newTop + "px";
+      checkPowerUpCollision(powerUp);
+    }
+  }, 1000 / 30);
+}
+
+
+function checkPowerUpCollision(powerUp) {
+  const powerUpRect = powerUp.getBoundingClientRect();
+  const stickmanBodyRect = stickman.querySelector(".stickman-body").getBoundingClientRect();
+
+  const isBodyColliding = (
+    stickmanBodyRect.x < powerUpRect.x + powerUpRect.width &&
+    stickmanBodyRect.x + stickmanBodyRect.width > powerUpRect.x &&
+    stickmanBodyRect.y < powerUpRect.y + powerUpRect.height &&
+    stickmanBodyRect.y + stickmanBodyRect.height > powerUpRect.y
+  );
+
+  if (isBodyColliding) {
+    gameContainer.removeChild(powerUp);
+    activatePowerUp();
+  }
+}
+
+
+function activatePowerUp() {
+  powerUpActive = true;
+  setTimeout(() => {
+    powerUpActive = false;
+  }, 5000); // The power-up will be active for 5 seconds
+}
+
 
 
 function checkBulletCollision(bullet) {
@@ -286,6 +343,9 @@ function endGame() {
 restartButton.addEventListener("click", () => {
   location.reload();
 });
+
+
+setInterval(createPowerUp, 10000); // Create a power-up every 10 seconds
 
 // Create obstacles and update the score periodically.
 setInterval(createObstacle, 500);
